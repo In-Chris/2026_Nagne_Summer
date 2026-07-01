@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회비 조회</title>
+  <style>
+    /* ─── 디자인 토큰 ─────────────────────────────── */
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --border:    #2a2e3f;
+      --accent:    #6c8fff;
+      --accent2:   #a78bfa;
+      --text:      #e8eaf6;
+      --muted:     #6b7280;
+      --success:   #34d399;
+      --error:     #f87171;
+      --radius:    14px;
+      --font-main: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-main);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 60px;
+    }
+
+    /* ─── 헤더 ─────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(108,143,255,.12);
+      border: 1px solid rgba(108,143,255,.3);
+      border-radius: 99px;
+      padding: 4px 14px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: clamp(26px, 6vw, 38px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, var(--text) 40%, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+    .subtitle {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* ─── 검색 카드 ────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      letter-spacing: .04em;
+    }
+
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 16px;
+      font-family: inherit;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color .2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    input[type="text"]::placeholder { color: var(--muted); }
+    input[type="text"]:focus { border-color: var(--accent); }
+
+    button {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      font-family: inherit;
+      padding: 16px;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+      -webkit-appearance: none;
+      appearance: none;
+      touch-action: manipulation;
+    }
+    button:hover  { opacity: .88; }
+    button:active { transform: scale(.97); }
+
+    /* ─── 결과 영역 ────────────────────────────────── */
+    #result {
+      margin-top: 24px;
+      display: none;
+    }
+
+    .result-inner {
+      border-top: 1px solid var(--border);
+      padding-top: 22px;
+    }
+
+    .name-tag {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .name-display {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.01em;
+      margin-bottom: 20px;
+    }
+
+    .amount-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .amount {
+      font-size: clamp(32px, 9vw, 48px);
+      font-weight: 900;
+      letter-spacing: -.03em;
+      color: var(--success);
+      line-height: 1;
+    }
+    .amount span {
+      font-size: .5em;
+      font-weight: 600;
+      vertical-align: middle;
+      margin-left: 2px;
+      color: var(--success);
+      opacity: .7;
+    }
+
+    .note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+      background: rgba(255,255,255,.04);
+      border-radius: 8px;
+      padding: 10px 14px;
+      line-height: 1.6;
+    }
+
+    /* ─── 에러 ─────────────────────────────────────── */
+    .error-box {
+      color: var(--error);
+      font-size: 14px;
+      background: rgba(248,113,113,.08);
+      border: 1px solid rgba(248,113,113,.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    /* ─── 목록 힌트 (이름 자동완성) ─────────────────── */
+    datalist option { font-family: inherit; }
+
+    /* ─── 푸터 ──────────────────────────────────────── */
+    footer {
+      margin-top: 48px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">2026 청년부 여름수련회</div>
+  <h1>회비 조회</h1>
+  <p class="subtitle">이름을 입력하면 납부할 회비를 알려드려요</p>
+</header>
+
+<div class="card">
+  <label for="nameInput">이름 입력</label>
+  <div class="input-row">
+    <input
+      type="text"
+      id="nameInput"
+      list="nameList"
+      placeholder="예) 홍길동"
+      autocomplete="off"
+      inputmode="text"
+    />
+    <button id="lookupBtn">🔍 조회하기</button>
+  </div>
+
+  <datalist id="nameList"></datalist>
+
+  <div class="error-box" id="errorBox">
+    ❗ 명단에서 찾을 수 없어요. 이름을 다시 확인해 주세요.
+  </div>
+
+  <div id="result">
+    <div class="result-inner">
+      <div class="name-tag">조회 결과</div>
+      <div class="name-display" id="resName"></div>
+
+      <div class="amount-label">납부 회비</div>
+      <div class="amount" id="resAmount"></div>
+
+      <div class="note" id="resNote"></div>
+    </div>
+  </div>
+</div>
+
+<footer>회비입금계좌: 카카오뱅크(조인)	3333-36-0726598</footer>
+
+<script>
+// ┌─────────────────────────────────────────────────────────┐
+// │  ✏️  여기만 수정하세요! 이름 / 금액 / 메모를 바꿔주세요  │
+// └─────────────────────────────────────────────────────────┘
+const DATA = [
+  { name: "김대복", amount: 120000, note: "전일 참석(직장인)" },
+  { name: "조인", amount: 120000, note: "전일 참석(직장인)" },
+  { name: "경현성", amount: 120000, note: "전일 참석(직장인)" },
+  { name: "김주혁", amount: 120000, note: "전일 참석(직장인)" },
+  { name: "김승헌", amount: 120000, note: "전일 참석(직장인)" },
+  { name: "심성은", amount: 120000, note: "전일 참석(직장인)" },
+  { name: "김호균", amount: 100000, note: "전일 참석(대학생)" },
+  { name: "김하균", amount: 100000, note: "전일 참석(대학생)" },
+  { name: "장윤정", amount: 100000, note: "전일 참석(대학생)" },
+  { name: "오주원", amount: 100000, note: "전일 참석(대학생)" },
+  { name: "이하성", amount: 100000, note: "전일 참석(대학생)" },
+  { name: "박선우", amount: 100000, note: "전일 참석(대학생)" },
+  { name: "박종혁", amount: 100000, note: "전일 참석(대학생)" },
+  { name: "김수민", amount: 100000, note: "부분 참석(첫날밤)" },
+  { name: "차승희", amount: 100000, note: "부분 참석(첫날밤)" },
+  { name: "이승구", amount: 100000, note: "부분 참석(첫날밤)" },
+  { name: "김하승", amount: 100000, note: "부분 참석(첫날밤)" },
+  { name: "이아론", amount: 75000, note: "부분 참석(둘째날오후)" },
+  { name: "선혜민", amount: 75000, note: "부분 참석(둘째날오후)" },
+  { name: "최하늘", amount: 75000, note: "부분 참석(둘째날오후)" },
+  { name: "금주원", amount: 85000, note: "부분 참석(둘째날밤퇴실)" },
+];
+// ──────────────────────────────────────────────────────────
+
+// 자동완성 목록 채우기
+const dl = document.getElementById("nameList");
+DATA.forEach(p => {
+  const opt = document.createElement("option");
+  opt.value = p.name;
+  dl.appendChild(opt);
+});
+
+function fmt(n) {
+  return n.toLocaleString("ko-KR");
+}
+
+function lookup() {
+  const query = document.getElementById("nameInput").value.trim();
+  const errorBox = document.getElementById("errorBox");
+  const resultDiv = document.getElementById("result");
+
+  errorBox.style.display = "none";
+  resultDiv.style.display = "none";
+
+  if (!query) return;
+
+  const found = DATA.find(p => p.name === query);
+
+  if (!found) {
+    errorBox.style.display = "block";
+    return;
+  }
+
+  document.getElementById("resName").textContent = found.name + " 님";
+  document.getElementById("resAmount").innerHTML =
+    fmt(found.amount) + "<span>원</span>";
+  document.getElementById("resNote").textContent = "📌 " + (found.note || "");
+  resultDiv.style.display = "block";
+}
+
+// 엔터키 지원 + 키보드 내리기
+document.getElementById("nameInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.target.blur();
+    lookup();
+  }
+});
+
+// 버튼 - 아이폰 포함 모든 기기 대응
+const btn = document.getElementById("lookupBtn");
+btn.addEventListener("click", lookup);
+btn.addEventListener("touchend", function(e) {
+  e.preventDefault();
+  lookup();
+});
+</script>
+
+</body>
+</html>
