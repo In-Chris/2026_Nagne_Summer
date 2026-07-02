@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수련회 시간표</title>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --border:    #2a2e3f;
+      --accent:    #6c8fff;
+      --accent2:   #a78bfa;
+      --text:      #e8eaf6;
+      --muted:     #6b7280;
+      --success:   #34d399;
+      --radius:    14px;
+      --font-main: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-main);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 60px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 20px;
+      touch-action: manipulation;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(108,143,255,.12);
+      border: 1px solid rgba(108,143,255,.3);
+      border-radius: 99px;
+      padding: 4px 14px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: clamp(24px, 6vw, 34px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, var(--text) 40%, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 420px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: all .2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .day-panel {
+      display: none;
+      width: 100%;
+      max-width: 420px;
+      flex-direction: column;
+    }
+    .day-panel.active { display: flex; }
+
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      position: relative;
+    }
+    .timeline-item:not(:last-child) .line {
+      position: absolute;
+      left: 38px;
+      top: 36px;
+      bottom: -4px;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .time-col {
+      width: 56px;
+      flex-shrink: 0;
+      padding-top: 16px;
+      text-align: right;
+    }
+    .time-text {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      line-height: 1;
+    }
+
+    .dot-col {
+      width: 20px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 20px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      z-index: 1;
+    }
+    .dot.highlight { background: var(--accent); }
+    .dot.special   { background: var(--accent2); }
+    .dot.meal      { background: var(--success); }
+
+    .content-col {
+      flex: 1;
+      padding: 12px 0 20px;
+    }
+
+    .program-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .program-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 99px;
+      padding: 2px 8px;
+      margin-bottom: 4px;
+    }
+    .tag-worship  { background: rgba(108,143,255,.15); color: var(--accent); }
+    .tag-meal     { background: rgba(52,211,153,.15);  color: var(--success); }
+    .tag-activity { background: rgba(167,139,250,.15); color: var(--accent2); }
+    .tag-free     { background: rgba(107,114,128,.15); color: var(--muted); }
+    .tag-sleep    { background: rgba(30,30,50,.5);     color: var(--muted); }
+
+    .back-link {
+      display: block;
+      width: 100%;
+      max-width: 420px;
+      margin-top: 32px;
+      padding: 14px;
+      background: rgba(108,143,255,.1);
+      border: 1px solid rgba(108,143,255,.25);
+      border-radius: var(--radius);
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      touch-action: manipulation;
+    }
+
+    footer {
+      margin-top: 32px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="text-align:left">
+    <a href="summer.html" class="back-btn">← 회비 조회로 돌아가기</a>
+  </div>
+  <div class="badge">2026 청년부 여름수련회</div>
+  <h1>수련회 시간표</h1>
+  <p class="subtitle">7월 16일(수) ~ 7월 18일(금) · 잣향기푸른숲</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showDay(0)">1일차<br><small style="font-weight:400;font-size:11px">7/16 수</small></button>
+  <button class="tab"        onclick="showDay(1)">2일차<br><small style="font-weight:400;font-size:11px">7/17 목</small></button>
+  <button class="tab"        onclick="showDay(2)">3일차<br><small style="font-weight:400;font-size:11px">7/18 금</small></button>
+</div>
+
+<!-- 1일차 -->
+<div class="day-panel active" id="day0">
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">11:00</div></div>
+    <div class="dot-col"><div class="dot"></div></div>
+    <div class="content-col">
+      <div class="tag tag-free">집합</div>
+      <div class="program-title">집합</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">13:30</div></div>
+    <div class="dot-col"><div class="dot meal"></div></div>
+    <div class="content-col">
+      <div class="tag tag-meal">식사</div>
+      <div class="program-title">점심 식사</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">15:00</div></div>
+    <div class="dot-col"><div class="dot"></div></div>
+    <div class="content-col">
+      <div class="tag tag-free">입실</div>
+      <div class="program-title">입실</div>
+      <div class="program-desc">짐 정리 및 방 배정</div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">15:30</div></div>
+    <div class="dot-col"><div class="dot highlight"></div></div>
+    <div class="content-col">
+      <div class="tag tag-worship">말씀</div>
+      <div class="program-title">성경읽기</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">17:00</div></div>
+    <div class="dot-col"><div class="dot special"></div></div>
+    <div class="content-col">
+      <div class="tag tag-activity">프로그램</div>
+      <div class="program-title">레크레이션</div>
+      <div class="program-desc">친목 게임</div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">18:30</div></div>
+    <div class="dot-col"><div class="dot meal"></div></div>
+    <div class="content-col">
+      <div class="tag tag-meal">식사</div>
+      <div class="program-title">저녁 식사</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">19:30</div></div>
+    <div class="dot-col"><div class="dot highlight"></div></div>
+    <div class="content-col">
+      <div class="tag tag-worship">예배</div>
+      <div class="program-title">예배 (설교 1)</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">22:30</div></div>
+    <div class="dot-col"><div class="dot special"></div></div>
+    <div class="content-col">
+      <div class="tag tag-activity">나눔</div>
+      <div class="program-title">One on One 나눔</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="time-col"><div class="time-text">01:00</div></div>
+    <div class="dot-col"><div class="dot"></div></div>
+    <div class="content-col">
+      <div class="tag tag-sleep">취침</div>
+      <div class="program-title">소등</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 2일차 -->
+<div class="day-panel" id="day1">
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">07:30</div></div>
+    <div class="dot-col"><div class="dot"></div></div>
+    <div class="content-col">
+      <div class="tag tag-free">기상</div>
+      <div class="program-title">기상</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">08:00</div></div>
+    <div class="dot-col"><div class="dot meal"></div></div>
+    <div class="content-col">
+      <div class="tag tag-meal">식사</div>
+      <div class="program-title">아침 식사</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">09:00</div></div>
+    <div class="dot-col"><div class="dot special"></div></div>
+    <div class="content-col">
+      <div class="tag tag-activity">외부활동</div>
+      <div class="program-title">수목원 방문</div>
+      <div class="program-desc">잣향기푸른숲 출발</div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">11:00</div></div>
+    <div class="dot-col"><div class="dot highlight"></div></div>
+    <div class="content-col">
+      <div class="tag tag-worship">말씀</div>
+      <div class="program-title">숙소 복귀 후 성경읽기</div>
+      <div class="program-desc">~12:30</div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">12:30</div></div>
+    <div class="dot-col"><div class="dot meal"></div></div>
+    <div class="content-col">
+      <div class="tag tag-meal">식사</div>
+      <div class="program-title">점심 식사</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">13:30</div></div>
+    <div class="dot-col"><div class="dot highlight"></div></div>
+    <div class="content-col">
+      <div class="tag tag-worship">예배</div>
+      <div class="program-title">오후 예배 (설교 2)</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">15:30</div></div>
+    <div class="dot-col"><div class="dot special"></div></div>
+    <div class="content-col">
+      <div class="tag tag-activity">간식</div>
+      <div class="program-title">나눔 + 화채 간식</div>
+      <div class="program-desc">화채 만들어 먹기</div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">16:30</div></div>
+    <div class="dot-col"><div class="dot special"></div></div>
+    <div class="content-col">
+      <div class="tag tag-activity">프로그램</div>
+      <div class="program-title">레크레이션</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">18:30</div></div>
+    <div class="dot-col"><div class="dot meal"></div></div>
+    <div class="content-col">
+      <div class="tag tag-meal">식사</div>
+      <div class="program-title">바베큐 저녁 식사</div>
+      <div class="program-desc">~20:00</div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">20:00</div></div>
+    <div class="dot-col"><div class="dot highlight"></div></div>
+    <div class="content-col">
+      <div class="tag tag-worship">예배</div>
+      <div class="program-title">저녁 예배 (설교 3)</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="time-col"><div class="time-text">22:00</div></div>
+    <div class="dot-col"><div class="dot"></div></div>
+    <div class="content-col">
+      <div class="tag tag-free">자유</div>
+      <div class="program-title">자유시간</div>
+      <div class="program-desc">One on One 나눔 가능</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 3일차 -->
+<div class="day-panel" id="day2">
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">07:30</div></div>
+    <div class="dot-col"><div class="dot"></div></div>
+    <div class="content-col">
+      <div class="tag tag-free">기상</div>
+      <div class="program-title">기상</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">08:00</div></div>
+    <div class="dot-col"><div class="dot meal"></div></div>
+    <div class="content-col">
+      <div class="tag tag-meal">식사</div>
+      <div class="program-title">아침 식사</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">09:00</div></div>
+    <div class="dot-col"><div class="dot highlight"></div></div>
+    <div class="content-col">
+      <div class="tag tag-worship">예배</div>
+      <div class="program-title">오전 예배 (설교 4)</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">11:00</div></div>
+    <div class="dot-col"><div class="dot"></div></div>
+    <div class="content-col">
+      <div class="tag tag-free">정리</div>
+      <div class="program-title">퇴실</div>
+      <div class="program-desc">짐 정리 및 청소</div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="line"></div>
+    <div class="time-col"><div class="time-text">13:00</div></div>
+    <div class="dot-col"><div class="dot meal"></div></div>
+    <div class="content-col">
+      <div class="tag tag-meal">식사</div>
+      <div class="program-title">점심 식사</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="time-col"><div class="time-text">15:00</div></div>
+    <div class="dot-col"><div class="dot"></div></div>
+    <div class="content-col">
+      <div class="tag tag-free">해산</div>
+      <div class="program-title">해산</div>
+      <div class="program-desc"></div>
+    </div>
+  </div>
+
+</div>
+
+<a href="summer.html" class="back-link">← 회비 조회로 돌아가기</a>
+
+<footer>2026 청년부 여름수련회</footer>
+
+<script>
+function showDay(idx) {
+  document.querySelectorAll('.day-panel').forEach((p, i) => {
+    p.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+  });
+}
+</script>
+
+</body>
+</html>
