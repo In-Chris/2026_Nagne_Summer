@@ -200,6 +200,28 @@
     /* ─── 목록 힌트 (이름 자동완성) ─────────────────── */
     datalist option { font-family: inherit; }
 
+    /* ─── 시간표 링크 버튼 ──────────────────────────── */
+    .schedule-link {
+      display: block;
+      width: 100%;
+      max-width: 420px;
+      margin-top: 16px;
+      padding: 14px;
+      background: rgba(167,139,250,.12);
+      border: 1px solid rgba(167,139,250,.3);
+      border-radius: var(--radius);
+      color: var(--accent2);
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: opacity .15s;
+    }
+    .schedule-link:hover { opacity: .8; }
+
     /* ─── 푸터 ──────────────────────────────────────── */
     footer {
       margin-top: 48px;
@@ -250,12 +272,11 @@
   </div>
 </div>
 
+<a href="schedule.html" class="schedule-link">📅 수련회 시간표 보기</a>
+
 <footer>회비입금계좌: 카카오뱅크(조인)	3333-36-0726598</footer>
 
 <script>
-// ┌─────────────────────────────────────────────────────────┐
-// │  ✏️  여기만 수정하세요! 이름 / 금액 / 메모를 바꿔주세요  │
-// └─────────────────────────────────────────────────────────┘
 const DATA = [
   { name: "김대복", amount: 120000, note: "전일 참석(직장인)" },
   { name: "조인", amount: 120000, note: "전일 참석(직장인)" },
@@ -279,9 +300,7 @@ const DATA = [
   { name: "최하늘", amount: 75000, note: "부분 참석(둘째날오후)" },
   { name: "금주원", amount: 85000, note: "부분 참석(둘째날밤퇴실)" },
 ];
-// ──────────────────────────────────────────────────────────
 
-// 자동완성 목록 채우기
 const dl = document.getElementById("nameList");
 DATA.forEach(p => {
   const opt = document.createElement("option");
@@ -317,7 +336,6 @@ function lookup() {
   resultDiv.style.display = "block";
 }
 
-// 엔터키 지원 + 키보드 내리기
 document.getElementById("nameInput").addEventListener("keydown", e => {
   if (e.key === "Enter") {
     e.target.blur();
@@ -325,7 +343,6 @@ document.getElementById("nameInput").addEventListener("keydown", e => {
   }
 });
 
-// 버튼 - 아이폰 포함 모든 기기 대응
 const btn = document.getElementById("lookupBtn");
 btn.addEventListener("click", lookup);
 btn.addEventListener("touchend", function(e) {
