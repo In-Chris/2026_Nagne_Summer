@@ -336,11 +336,6 @@ document.getElementById("nameInput").addEventListener("keydown", e => {
 });
 
 const btn = document.getElementById("lookupBtn");
-btn.addEventListener("click", lookup);
-btn.addEventListener("touchend", function(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  lookup();
 });
 });
 </script>
