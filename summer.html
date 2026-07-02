@@ -300,13 +300,6 @@ const DATA = [
   { name: "금주원", amount: 85000, note: "부분 참석(둘째날밤퇴실)" },
 ];
 
-const dl = document.getElementById("nameList");
-DATA.forEach(p => {
-  const opt = document.createElement("option");
-  opt.value = p.name;
-  dl.appendChild(opt);
-});
-
 function fmt(n) {
   return n.toLocaleString("ko-KR");
 }
